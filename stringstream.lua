@@ -67,7 +67,7 @@ function stream_state:load_next()
 end
 
 function stream_state:unload_until(chunk)
-    for i = self.first_loaded_chunk, chunk - 1 do
+    for i = self.first_loaded_chunk, chunk - 2 do
         --print('  !!! unloading', i)
         self.loaded_length = self.loaded_length - #self.contents[i]
         self.contents[i] = nil
