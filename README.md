@@ -18,12 +18,12 @@ that expects strings and use method notation (`text:match(...)`).
   If only `i` is passed, returns a new view into stream with starting index `i`. 
   Loads contents from stream if necessary.
   Negative indices are not supported.
-- [find](https://www.lua.org/manual/5.4/manual.html#pdf-string.find) (NYI):
+- [find](https://www.lua.org/manual/5.4/manual.html#pdf-string.find):
   Try finding pattern on loaded contents. Upon failure or repetition items that
   match the whole string, loads new chunks and try again.
   Number of retries will be parameterizable upon creation.
   Negative indices are not supported.
-- [match](https://www.lua.org/manual/5.4/manual.html#pdf-string.match) (NYI):
+- [match](https://www.lua.org/manual/5.4/manual.html#pdf-string.match):
   Try matching pattern on loaded contents. Upon failure or repetition items that
   match the whole string, loads new chunks and try again.
   Number of retries will be parameterizable upon creation.
