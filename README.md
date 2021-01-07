@@ -28,7 +28,7 @@ that expects strings and use method notation (`text:match(...)`).
   match the whole string, loads new chunks and try again.
   Number of retries will be parameterizable upon creation.
   Negative indices are not supported.
-- [gmatch](https://www.lua.org/manual/5.4/manual.html#pdf-string.gmatch) (NYI):
+- [gmatch](https://www.lua.org/manual/5.4/manual.html#pdf-string.gmatch):
   Returns an iterator function that, each time it is called, returns the next
   match from loaded contents. On iteration end or repetition items that match
   the whole string, loads new chunks and retry.
@@ -43,7 +43,6 @@ Tests are run using [busted](https://olivinelabs.com/busted/):
 
 
 ## TODO
-- Implement gmatch
 - Add documentation
 - Automated tests
 - Remove commented `print` debug lines

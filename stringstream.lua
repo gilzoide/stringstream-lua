@@ -188,6 +188,28 @@ function stringstream:match(pattern, init)
     end
 end
 
+function stringstream:gmatch(pattern, init)
+    assert((not init) or init > 0, "Calling stringstream.gmatch with non-positive index is not supported!")
+    local function iterate()
+        local init = init
+        while true do
+            local find_results = { self:find(pattern, init, false) }
+            if find_results[1] then
+                --print('GMATCH', unpack(find_results))
+                if not find_results[3] then
+                    coroutine.yield(self.sub(find_results[1], find_results[2]))
+                else
+                    coroutine.yield(unpack(find_results, 3))
+                end
+                init = find_results[2] + 1
+            else
+                return nil
+            end
+        end
+    end
+    return coroutine.wrap(iterate)
+end
+
 function stringstream:__tostring()
     return self.stream:string_from(self.chunk, self.starting_index)
 end
@@ -200,6 +222,7 @@ stringstream.__index = {
     sub = stringstream.sub,
     find = stringstream.find,
     match = stringstream.match,
+    gmatch = stringstream.gmatch,
     len = stringstream.__len,
     __len = stringstream.__len,
 }
