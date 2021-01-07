@@ -167,6 +167,10 @@ function stringstream:find(pattern, init, plain)
         local results = { text:find(pattern, init, plain) }
         if results[1] and results[2] < #text then
             return unpack(results)
+
+            -- TODO: check if `init` may be updated with `results[1]` in case a
+            -- match was found, but may be longer, to reduce search space
+            -- (check if there are cases where this would return wrong results)
         end
         if not stream:load_next() then
             return unpack(results)
