@@ -227,4 +227,6 @@ stringstream.__index = {
     __len = stringstream.__len,
 }
 
+stringstream._VERSION = '0.1.0'
+
 return stringstream
