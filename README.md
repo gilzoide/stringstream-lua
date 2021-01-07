@@ -43,7 +43,6 @@ Tests are run using [busted](https://olivinelabs.com/busted/):
 
 
 ## TODO
-- Implement find
 - Implement match
 - Implement gmatch
 - Add documentation

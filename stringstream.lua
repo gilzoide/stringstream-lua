@@ -1,3 +1,6 @@
+-- Lua 5.1+ compatibility
+local unpack = table.unpack or unpack
+
 --- Default chunk size
 local DEFAULT_CHUNKSIZE = 1024
 
@@ -154,6 +157,22 @@ function stringstream:sub(i, j)
     end
 end
 
+function stringstream:find(pattern, init, plain)
+    init = init or 1
+    assert(init > 0, "Calling stringstream.find with non-positive index is not supported!")
+    local stream, chunk, starting_index = self.stream, self.chunk, self.starting_index
+    stream:load_if_needed(chunk, starting_index + init - 1)
+    while true do
+        local text = stream:string_from(chunk, starting_index)
+        local results = { text:find(pattern, init, plain) }
+        if results[1] and results[2] < #text then
+            return unpack(results)
+        end
+        if not stream:load_next() then
+            return unpack(results)
+        end
+    end
+end
 
 function stringstream:__tostring()
     return self.stream:string_from(self.chunk, self.starting_index)
@@ -165,6 +184,7 @@ end
 
 stringstream.__index = {
     sub = stringstream.sub,
+    find = stringstream.find,
     len = stringstream.__len,
     __len = stringstream.__len,
 }
