@@ -2,7 +2,7 @@ root = true
 
 [*]
 insert_final_newline = true
-
-[*.lua]
 indent_style = space
+
+[*.{lua,rockspec}]
 indent_size = 4
