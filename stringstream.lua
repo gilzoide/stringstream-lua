@@ -71,8 +71,8 @@ function stream_state:unload_until(chunk)
         --print('  !!! unloading', i)
         self.loaded_length = self.loaded_length - #self.contents[i]
         self.contents[i] = nil
+        self.first_loaded_chunk = i + 1
     end
-    self.first_loaded_chunk = chunk
 end
 
 function stream_state:string_from(chunk, starting_index, end_index)
