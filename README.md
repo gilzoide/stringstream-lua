@@ -7,10 +7,12 @@ This is meant to be used to pass streams (e.g.: files) to parser functionality
 that expects strings and use method notation (`text:match(...)`).
 
 
-## Supported methods
+## Supported methods and metamethods
+- [__tostring](https://www.lua.org/manual/5.4/manual.html#2.4) metamethod:
+  Returns the current loaded content string.
 - [len](https://www.lua.org/manual/5.4/manual.html#pdf-string.len) and [__len](https://www.lua.org/manual/5.4/manual.html#2.4) metamethod:
   Returns the length of the current loaded content.
-  This is probably only useful to check for end of contents with `#stream == 0`.
+  This is probably only useful to check for end of contents with `#stream == 0`, as it almost never reflects the entire contents length.
 - [sub](https://www.lua.org/manual/5.4/manual.html#pdf-string.sub):
   If both `i` and `j` are passed, returns the string that starts at `i` and continues until `j`.
   If only `i` is passed, returns a new view into stream with starting index `i`. 

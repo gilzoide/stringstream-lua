@@ -79,6 +79,10 @@ function stream_state:string_from(chunk, starting_index, end_index)
     return content:sub(starting_index, end_index)
 end
 
+function stream_state:__len()
+    return self.loaded_length
+end
+
 function stream_state:__tostring()
     return self:string_from(self.first_loaded_chunk, 1)
 end
@@ -150,8 +154,13 @@ function stringstream:sub(i, j)
     end
 end
 
+
+function stringstream:__tostring()
+    return self.stream:string_from(self.chunk, self.starting_index)
+end
+
 function stringstream:__len()
-    return self.stream.loaded_length
+    return self.stream.loaded_length - (self.starting_index - 1)
 end
 
 stringstream.__index = {
