@@ -178,6 +178,16 @@ function stringstream:find(pattern, init, plain)
     end
 end
 
+function stringstream:match(pattern, init)
+    assert((not init) or init > 0, "Calling stringstream.match with non-positive index is not supported!")
+    local find_results = { self:find(pattern, init, false) }
+    if find_results[1] and not find_results[3] then
+        return self:sub(find_results[1], find_results[2])
+    else
+        return unpack(find_results, 3)
+    end
+end
+
 function stringstream:__tostring()
     return self.stream:string_from(self.chunk, self.starting_index)
 end
@@ -189,6 +199,7 @@ end
 stringstream.__index = {
     sub = stringstream.sub,
     find = stringstream.find,
+    match = stringstream.match,
     len = stringstream.__len,
     __len = stringstream.__len,
 }
