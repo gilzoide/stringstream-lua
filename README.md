@@ -1,16 +1,22 @@
-# stringstream (WIP)
+# stringstream
 An object that loads chunks of strings on demand compatible with a subset
 of the [Lua string API](https://www.lua.org/manual/5.4/manual.html#6.4)
-suitable for parsing.
+suitable for parsing. Compatible with Lua 5.1+
 
 This is meant to be used to pass streams (e.g.: files) to parser functionality
 that expects strings and use method notation (`text:match(...)`).
 
+It is available as a [LuaRocks package](https://luarocks.org/modules/gilzoide/stringstream):
+
+    $ luarocks install stringstream
+
+Or just copy `stringstream.lua` into your Lua path and `require` it, the module has no dependencies.
+
 
 ## Supported methods and metamethods
-- [__tostring](https://www.lua.org/manual/5.4/manual.html#2.4) metamethod:
+- [__tostring](https://www.lua.org/manual/5.4/manual.html#2.4):
   Returns the current loaded content string.
-- [len](https://www.lua.org/manual/5.4/manual.html#pdf-string.len) and [__len](https://www.lua.org/manual/5.4/manual.html#2.4) metamethod:
+- [__len](https://www.lua.org/manual/5.4/manual.html#2.4), [len](https://www.lua.org/manual/5.4/manual.html#pdf-string.len):
   Returns the length of the current loaded content.
   This is probably only useful to check for end of contents with `#stream == 0`, as it almost never reflects the entire contents length.
 - [sub](https://www.lua.org/manual/5.4/manual.html#pdf-string.sub):
