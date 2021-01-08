@@ -197,7 +197,7 @@ function stringstream:gmatch(pattern, init)
             if find_results[1] then
                 --print('GMATCH', unpack(find_results))
                 if not find_results[3] then
-                    coroutine.yield(self.sub(find_results[1], find_results[2]))
+                    coroutine.yield(self:sub(find_results[1], find_results[2]))
                 else
                     coroutine.yield(unpack(find_results, 3))
                 end
