@@ -13,6 +13,30 @@ It is available as a [LuaRocks package](https://luarocks.org/modules/gilzoide/st
 Or just copy `stringstream.lua` into your Lua path and `require` it, the module has no dependencies.
 
 
+## Using
+```lua
+local stringstream = require 'stringstream'
+
+-- Streams may be created with functions like the ones `load` expects,
+-- or file-like objects that contain a `read` method, like open files.
+local stream = assert(stringstream.new(io.stdin))
+
+-- Alternatively, `stringstream.open(filename)` may be used to open a file
+-- by name in read mode and create a stringstream from it.
+--
+-- local stream = assert(stringstream.open("README.md"))
+
+-- Now just call the supported string methods =D
+while true do
+    local token, advance = stream:match("(%S+)()")
+    if not token then break end
+    -- ... do something with token
+    print('TOKEN', token)
+    stream = stream:sub(advance)
+end
+```
+
+
 ## Supported methods and metamethods
 - [__tostring](https://www.lua.org/manual/5.4/manual.html#2.4):
   Returns the current loaded content string.
