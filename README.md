@@ -17,8 +17,9 @@ Or just copy `stringstream.lua` into your Lua path and `require` it, the module 
 ```lua
 local stringstream = require 'stringstream'
 
--- Streams may be created with functions like the ones `load` expects,
--- or file-like objects that contain a `read` method, like open files.
+-- Streams may be created with callable objects (functions or tables/userdata
+-- with __call metamethod) like the ones `load` expects, or file-like objects
+-- that contain a `read` method, like open files.
 local stream = assert(stringstream.new(io.stdin))
 
 -- Alternatively, `stringstream.open(filename)` may be used to open a file
