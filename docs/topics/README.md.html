@@ -1,0 +1,161 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<head>
+    <title>Reference</title>
+    <link rel="stylesheet" href="../ldoc.css" type="text/css" />
+</head>
+<body>
+
+<div id="container">
+
+<div id="product">
+	<div id="product_logo"></div>
+	<div id="product_name"><big><b></b></big></div>
+	<div id="product_description"></div>
+</div> <!-- id="product" -->
+
+
+<div id="main">
+
+
+<!-- Menu -->
+
+<div id="navigation">
+<br/>
+<h1>ldoc</h1>
+
+
+<h2>Contents</h2>
+<ul>
+<li><a href="#Using">Using </a></li>
+<li><a href="#Supported_methods_and_metamethods">Supported methods and metamethods </a></li>
+<li><a href="#Running_tests">Running tests </a></li>
+<li><a href="#TODO">TODO </a></li>
+</ul>
+
+
+<h2>Topics</h2>
+<ul class="">
+  <li><strong>README</strong></li>
+</ul>
+<h2>Modules</h2>
+<ul class="nowrap">
+  <li><a href="../index.html">stringstream</a></li>
+</ul>
+
+</div>
+
+<div id="content">
+
+
+<h1>stringstream</h1>
+<p>An object that loads chunks of strings on demand compatible with a subset
+of the <a href="https://www.lua.org/manual/5.4/manual.html#6.4">Lua string API</a>
+suitable for parsing. Compatible with Lua 5.1+</p>
+
+<p>Meant for passing streams (e.g.: files) to parser functionality
+that expects strings and use method notation (<code>text:match(...)</code>).</p>
+
+<p>It is available as a <a href="https://luarocks.org/modules/gilzoide/stringstream">LuaRocks package</a>:</p>
+
+
+<pre>
+$ luarocks install stringstream
+</pre>
+
+<p>Or just copy <code>stringstream.lua</code> into your Lua path and <a href="https://www.lua.org/manual/5.1/manual.html#pdf-require">require</a> it, the module has no dependencies.</p>
+
+
+<p><a name="Using"></a></p>
+<h2>Using</h2>
+
+<pre>
+<span class="keyword">local</span> stringstream = <span class="global">require</span> <span class="string">'stringstream'</span>
+
+<span class="comment">-- Streams may be created with callable objects (functions or tables/userdata
+</span><span class="comment">-- with __call metamethod) like the ones <a href="https://www.lua.org/manual/5.1/manual.html#pdf-load">load</a> expects, or file-like objects
+</span><span class="comment">-- that contain a <code>read</code> method, like open files.
+</span><span class="keyword">local</span> stream = <span class="global">assert</span>(stringstream.new(<span class="global">io</span>.stdin))
+
+<span class="comment">-- Alternatively, <code>stringstream.open(filename, ...)</code> may be used to open a file
+</span><span class="comment">-- by name in read mode and create a stringstream from it.
+</span><span class="comment">--
+</span><span class="comment">-- local stream = assert(stringstream.open("README.md"))
+</span>
+<span class="comment">-- Now just call the supported string methods =D
+</span><span class="keyword">while</span> <span class="keyword">true</span> <span class="keyword">do</span>
+    <span class="keyword">local</span> token, advance = stream:match(<span class="string">"(%S+)()"</span>)
+    <span class="keyword">if</span> <span class="keyword">not</span> token <span class="keyword">then</span> <span class="keyword">break</span> <span class="keyword">end</span>
+    <span class="comment">-- ... do something with token
+</span>    <span class="global">print</span>(<span class="string">'TOKEN'</span>, token)
+    stream = stream:sub(advance)
+<span class="keyword">end</span>
+</pre>
+
+
+
+<p><a name="Supported_methods_and_metamethods"></a></p>
+<h2>Supported methods and metamethods</h2>
+
+<ul>
+    <li><a href="https://www.lua.org/manual/5.4/manual.html#2.4">__tostring</a>:
+    Returns the current loaded content string.</li>
+    <li><a href="https://www.lua.org/manual/5.4/manual.html#2.4">__len</a>, <a href="https://www.lua.org/manual/5.4/manual.html#pdf-string.len">len</a>:
+    Returns the length of the current loaded content.</li>
+    <li><a href="https://www.lua.org/manual/5.4/manual.html#pdf-string.sub">sub</a>:
+    If both <code>i</code> and <code>j</code> are passed, returns the string that starts at <code>i</code> and continues until <code>j</code>.
+    If only <code>i</code> is passed, returns a new view into stream with starting index <code>i</code>.
+    Loads contents from stream if necessary.
+    Negative indices are not supported.</li>
+    <li><a href="https://www.lua.org/manual/5.4/manual.html#pdf-string.find">find</a>:
+    Try finding pattern on loaded contents. Upon failure or repetition items that
+    match the whole string, loads new chunks and try again.
+    Number of retries will be parameterizable upon creation.
+    Negative indices are not supported.</li>
+    <li><a href="https://www.lua.org/manual/5.4/manual.html#pdf-string.match">match</a>:
+    Try matching pattern on loaded contents. Upon failure or repetition items that
+    match the whole string, loads new chunks and try again.
+    Number of retries will be parameterizable upon creation.
+    Negative indices are not supported.</li>
+    <li><a href="https://www.lua.org/manual/5.4/manual.html#pdf-string.gmatch">gmatch</a>:
+    Returns an iterator function that, each time it is called, returns the next
+    match from loaded contents. On iteration end or repetition items that match
+    the whole string, loads new chunks and retry.
+    Number of retries will be parameterizable upon creation.
+    Negative indices are not supported.</li>
+</ul>
+
+
+<p><a name="Running_tests"></a></p>
+<h2>Running tests</h2>
+<p>Tests are run using <a href="https://olivinelabs.com/busted/">busted</a>:</p>
+
+
+<pre>
+$ busted
+</pre>
+
+<p><a name="TODO"></a></p>
+<h2>TODO</h2>
+
+<ul>
+    <li>Add documentation</li>
+    <li>Automated tests</li>
+    <li>Remove commented <a href="https://www.lua.org/manual/5.1/manual.html#pdf-print">print</a> debug lines</li>
+    <li>Add retry and chunk caching configurations</li>
+    <li>Check if should implement gsub</li>
+    <li>Check if should implement negative indices for streams that support seek operations (e.g.: files)</li>
+</ul>
+
+
+</div> <!-- id="content" -->
+</div> <!-- id="main" -->
+<div id="about">
+<i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
+<i style="float:right;">Last updated 2021-01-10 22:41:15 </i>
+</div> <!-- id="about" -->
+</div> <!-- id="container" -->
+</body>
+</html>

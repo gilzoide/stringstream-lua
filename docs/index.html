@@ -1,0 +1,506 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<head>
+    <title>Reference</title>
+    <link rel="stylesheet" href="ldoc.css" type="text/css" />
+</head>
+<body>
+
+<div id="container">
+
+<div id="product">
+	<div id="product_logo"></div>
+	<div id="product_name"><big><b></b></big></div>
+	<div id="product_description"></div>
+</div> <!-- id="product" -->
+
+
+<div id="main">
+
+
+<!-- Menu -->
+
+<div id="navigation">
+<br/>
+<h1>ldoc</h1>
+
+
+<h2>Contents</h2>
+<ul>
+<li><a href="#Functions">Functions</a></li>
+<li><a href="#Fields">Fields</a></li>
+</ul>
+
+
+<h2>Modules</h2>
+<ul class="nowrap">
+  <li><strong>stringstream</strong></li>
+</ul>
+<h2>Topics</h2>
+<ul class="">
+  <li><a href="topics/README.md.html">README</a></li>
+</ul>
+
+</div>
+
+<div id="content">
+
+<h1>Module <code>stringstream</code></h1>
+<p>An object that loads chunks of strings on demand compatible with a subset
+ of the string API suitable for parsing.</p>
+<p>
+
+</p>
+
+
+<h2><a href="#Functions">Functions</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#new">new (callable_or_file, ...)</a></td>
+	<td class="summary">Create a new stringstream from callable object or file-like object.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#open">open (filename, ...)</a></td>
+	<td class="summary">Creates a new stream from file.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#sub">sub (i[, j])</a></td>
+	<td class="summary">Returns a substring or a new view into stream.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#find">find (pattern[, init[, plain]])</a></td>
+	<td class="summary">Try finding <code>pattern</code> on loaded contents.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#match">match (pattern[, init])</a></td>
+	<td class="summary">Try matching <code>pattern</code> on loaded contents.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#gmatch">gmatch (pattern[, init])</a></td>
+	<td class="summary">Returns an iterator function that, each time it is called, returns the next
+ match from loaded contents.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#__tostring">__tostring ()</a></td>
+	<td class="summary">Returns the current loaded content string.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#__len">__len ()</a></td>
+	<td class="summary">Returns the current loaded content length.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#len">len ()</a></td>
+	<td class="summary">Alias for <a href="index.html#__len">stringstream:__len</a></td>
+	</tr>
+</table>
+<h2><a href="#Fields">Fields</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#chunksize">chunksize</a></td>
+	<td class="summary">Default chunk size of streams created with file objects.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#_VERSION">_VERSION</a></td>
+	<td class="summary">Module version.</td>
+	</tr>
+</table>
+
+<br/>
+<br/>
+
+
+    <h2 class="section-header "><a name="Functions"></a>Functions</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "new"></a>
+    <strong>new (callable_or_file, ...)</strong>
+    </dt>
+    <dd>
+    Create a new stringstream from callable object or file-like object. </p>
+
+<p> Both functions and tables or userdata with a <code>__call</code> metamethod are
+ accepted as callables. Just like <a href="https://www.lua.org/manual/5.1/manual.html#pdf-load">load</a>, each call must return a string that
+ concatenates with previous results and a return of an empty string, nil, or
+ no value signals the end of the stream. </p>
+
+<p> File-like objects are tables or userdata with a <code>read</code> method.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">callable_or_file</span>
+            <span class="types"><span class="type">function</span>, <a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.5">table</a> or <span class="type">userdata</span></span>
+          Callable or file-like object which chunks will be read from
+        </li>
+        <li><span class="parameter">...</span>
+          Arguments to be forwarded to the reading function. If <code>callable_or_file</code> is a file and no extra arguments are passed, <a href="index.html#chunksize">stringstream.chunksize</a> will be used
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        stringstream object
+    </ol>
+     <h3>Or</h3>
+    <ol>
+        <li>
+        nil</li>
+        <li>
+        error message</li>
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "open"></a>
+    <strong>open (filename, ...)</strong>
+    </dt>
+    <dd>
+    Creates a new stream from file. </p>
+
+<p> Opens the file with <a href="https://www.lua.org/manual/5.1/manual.html#pdf-io.open">io.open</a> in read mode and forward parameters to
+ <a href="index.html#new">stringstream.new</a>.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">filename</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+          Name of the file to open
+        </li>
+        <li><span class="parameter">...</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a> or <span class="type">number</span></span>
+          Arguments to be forwarded to <a href="https://www.lua.org/manual/5.1/manual.html#pdf-file:read">file:read</a>
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        stringstream object
+    </ol>
+     <h3>Or</h3>
+    <ol>
+        <li>
+           <span class="types"><span class="type">nil</span></span>
+
+
+</li>
+        <li>
+           <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+        Error message</li>
+        <li>
+           <span class="types"><span class="type">number</span></span>
+        Error code on <a href="https://www.lua.org/manual/5.1/manual.html#pdf-io.open">io.open</a> failure</li>
+    </ol>
+
+
+    <h3>See also:</h3>
+    <ul>
+         <a href="index.html#new">stringstream.new</a>
+    </ul>
+
+
+</dd>
+    <dt>
+    <a name = "sub"></a>
+    <strong>sub (i[, j])</strong>
+    </dt>
+    <dd>
+    Returns a substring or a new view into stream. </p>
+
+<p> If both <code>i</code> and <code>j</code> are passed, returns the substring that starts at <code>i</code>
+ and continues until <code>j</code> or until the end of stream.
+ Otherwise, returns a new stringstream object with starting index <code>i</code>.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">i</span>
+            <span class="types"><span class="type">number</span></span>
+          Starting index
+        </li>
+        <li><span class="parameter">j</span>
+            <span class="types"><span class="type">number</span></span>
+          Starting index
+         (<em>optional</em>)
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">stringstream</span></span>
+        If <code>j</code> is not passed and <code>i</code> is not past the end of the stream
+    </ol>
+     <h3>Or</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+        Empty if <code>j</code> is not passed in and <code>i</code> is past the end of the stream
+    </ol>
+     <h3>Or</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+        Substring if <code>j</code> is passed in
+    </ol>
+
+    <h3>Raises:</h3>
+     If either <code>i</code> or <code>j</code> are non-positive, as reading from the end of
+ stream is not supported.
+
+
+
+</dd>
+    <dt>
+    <a name = "find"></a>
+    <strong>find (pattern[, init[, plain]])</strong>
+    </dt>
+    <dd>
+    Try finding <code>pattern</code> on loaded contents. </p>
+
+<p> Upon failure or repetition items that match the whole loaded content,
+ loads a new chunk and retry.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">pattern</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+          Pattern string to search
+        </li>
+        <li><span class="parameter">init</span>
+            <span class="types"><span class="type">number</span></span>
+          Where to start the search from
+         (<em>optional</em>)
+        </li>
+        <li><span class="parameter">plain</span>
+          If truthy, turns off the pattern matching facilities
+         (<em>optional</em>)
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+        <li>
+           <span class="types"><span class="type">number</span></span>
+        Starting index of found pattern</li>
+        <li>
+           <span class="types"><span class="type">number</span></span>
+        Ending index of found pattern</li>
+        <li>
+           <span class="types"><span class="type">...</span></span>
+        Aditional captures of found pattern</li>
+    </ol>
+     <h3>Or</h3>
+    <ol>
+
+           <span class="types"><span class="type">fail</span></span>
+        If pattern is not found
+    </ol>
+
+    <h3>Raises:</h3>
+    If <code>init</code> is a negative number.
+
+    <h3>See also:</h3>
+    <ul>
+         <a href="https://www.lua.org/manual/5.1/manual.html#pdf-string.find">string.find</a>
+    </ul>
+
+
+</dd>
+    <dt>
+    <a name = "match"></a>
+    <strong>match (pattern[, init])</strong>
+    </dt>
+    <dd>
+    Try matching <code>pattern</code> on loaded contents. </p>
+
+<p> Uses <a href="index.html#find">stringstream:find</a> for searching, so the same caveats apply.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">pattern</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+          Pattern string to search
+        </li>
+        <li><span class="parameter">init</span>
+            <span class="types"><span class="type">number</span></span>
+          Where to start the search from
+         (<em>optional</em>)
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">...</span></span>
+        Captures of the found pattern
+    </ol>
+     <h3>Or</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+        The whole match, if pattern specifies no captures
+    </ol>
+     <h3>Or</h3>
+    <ol>
+
+           <span class="types"><span class="type">fail</span></span>
+        If pattern is not found
+    </ol>
+
+    <h3>Raises:</h3>
+    If <code>init</code> is a negative number.
+
+    <h3>See also:</h3>
+    <ul>
+         <li><a href="https://www.lua.org/manual/5.1/manual.html#pdf-string.match">string.match</a></li>
+         <li><a href="index.html#find">stringstream:find</a></li>
+    </ul>
+
+
+</dd>
+    <dt>
+    <a name = "gmatch"></a>
+    <strong>gmatch (pattern[, init])</strong>
+    </dt>
+    <dd>
+    Returns an iterator function that, each time it is called, returns the next
+ match from loaded contents. </p>
+
+<p> Uses <a href="index.html#find">stringstream:find</a> for searching, so the same caveats apply.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">pattern</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+          Pattern string to search
+        </li>
+        <li><span class="parameter">init</span>
+            <span class="types"><span class="type">number</span></span>
+          Where to start the search from
+         (<em>optional</em>)
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">function</span></span>
+        Iterator function over matches
+    </ol>
+
+    <h3>Raises:</h3>
+    If <code>init</code> is a negative number.
+
+    <h3>See also:</h3>
+    <ul>
+         <li><a href="https://www.lua.org/manual/5.1/manual.html#pdf-string.gmatch">string.gmatch</a></li>
+         <li><a href="index.html#match">stringstream:match</a></li>
+    </ul>
+
+
+</dd>
+    <dt>
+    <a name = "__tostring"></a>
+    <strong>__tostring ()</strong>
+    </dt>
+    <dd>
+    Returns the current loaded content string. </p>
+
+<p> Be careful that it almost never reflects the entire content string.
+
+
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "__len"></a>
+    <strong>__len ()</strong>
+    </dt>
+    <dd>
+    Returns the current loaded content length. </p>
+
+<p> Be careful that it almost never reflects the entire content length.
+
+
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "len"></a>
+    <strong>len ()</strong>
+    </dt>
+    <dd>
+    Alias for <a href="index.html#__len">stringstream:__len</a>
+
+
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header "><a name="Fields"></a>Fields</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "chunksize"></a>
+    <strong>chunksize</strong>
+    </dt>
+    <dd>
+    Default chunk size of streams created with file objects. </p>
+
+<p> Change this to configure defaults module-wise.
+ Default value is 1024.
+
+
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "_VERSION"></a>
+    <strong>_VERSION</strong>
+    </dt>
+    <dd>
+    Module version.
+
+
+
+
+
+
+
+</dd>
+</dl>
+
+
+</div> <!-- id="content" -->
+</div> <!-- id="main" -->
+<div id="about">
+<i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
+<i style="float:right;">Last updated 2021-01-10 22:41:15 </i>
+</div> <!-- id="about" -->
+</div> <!-- id="container" -->
+</body>
+</html>
