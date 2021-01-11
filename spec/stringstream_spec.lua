@@ -7,14 +7,33 @@ local function new_queue(...)
     return setmetatable({ ... }, Queue)
 end
 local function test_queue()
-    return new_queue("aaa", "bbb", "ccc", "   ", "\n"), 3
+    return new_queue("aaa", "bbb", "ccc", "   ", "\n")
 end
 
+describe("stringstream.sub", function()
+    it("errors if negative indexing is used", function()
+        local ss = assert(stringstream.new(test_queue()))
+        assert.has.errors(function() ss:sub(-1) end)
+        assert.has.errors(function() ss:sub(1, -1) end)
+    end)
+
+    it("returns empty string after reading ends", function()
+        local ss = assert(stringstream.new(test_queue()))
+        assert.same('', ss:sub(9999))
+    end)
+end)
+
 describe("stringstream.find", function()
+    it("errors if negative indexing is used", function()
+        local ss = assert(stringstream.new(test_queue()))
+        assert.has.errors(function() ss:find('a', -1) end)
+    end)
+
     it("returns the right values", function()
         local ss = assert(stringstream.new(test_queue()))
         assert.same({ 1, 1 }, { ss:find('a') })
         assert.same({ 1, 3 }, { ss:find('a+') })
+        assert.is_nil(ss:find('a+', 1, true))
         assert.same({ 2, 3 }, { ss:find('a+', 2) })
         assert.same({ 1, 3, 'aaa' }, { ss:find('(a+)') })
         assert.is_nil(ss:find('!'))

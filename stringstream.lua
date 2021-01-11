@@ -1,62 +1,67 @@
+--- An object that loads chunks of strings on demand compatible with a subset
+-- of the string API suitable for parsing.
+
 -- Lua 5.1+ compatibility
 local unpack = table.unpack or unpack
-
---- Default chunk size
-local DEFAULT_CHUNKSIZE = 1024
 
 --- Internal Stream state, caching chunks
 local stream_state = {}
 stream_state.__index = stream_state
 
-function stream_state.new(read, chunksize)
+function stream_state.new(read, ...)
     local state = setmetatable({
         read = read,
-        chunksize = chunksize or DEFAULT_CHUNKSIZE,
         contents = {},
         first_loaded_chunk = 1,
         last_loaded_chunk = 0,
         loaded_length = 0,
+        read_args = { ... },
     }, stream_state)
     state:load_next()
     return state
 end
 
-function stream_state:index_to_chunk(starting_index)
-    return math.floor((starting_index - 1) / self.chunksize)
-end
-
-function stream_state:recalculate_chunk_index(chunk, starting_index)
-    local chunk_inc = self:index_to_chunk(starting_index)
-    return chunk + chunk_inc, starting_index - (chunk_inc * self.chunksize)
+function stream_state:calculate_chunk_index(from_chunk, starting_index)
+    -- @warning: only call after checking `load_if_needed`
+    local chunk_start = from_chunk
+    local chunk = self.contents[chunk_start]
+    while starting_index > #chunk do
+        chunk_start = chunk_start + 1
+        starting_index = starting_index - #chunk
+        chunk = self.contents[chunk_start]
+    end
+    return chunk_start, starting_index
 end
 
 function stream_state:load_if_needed(from_chunk, starting_index)
     assert(from_chunk >= self.first_loaded_chunk, "Seeking stream backwards is not supported")
+    -- TODO: after thorough testing, remove this next assertion
+    assert(from_chunk <= self.last_loaded_chunk, "Invalid chunk number for stream, not loaded yet")
     
     -- unload chunks that are assumed to not be needed anymore
     self:unload_until(from_chunk)
 
-    -- load missing chunks, if any
-    local chunk = from_chunk + self:index_to_chunk(starting_index)
-    for i = from_chunk + 1, chunk do
-        if not self.contents[i] then
-            local new_content = self.read(self.chunksize)
-            if not new_content or #new_content <= 0 then
-                --print('  !!! loading', i, 'aborted')
-                break
-            end
-            --print('  !!! loading', i, string.format("%q", new_content))
-            self.contents[i] = new_content
-            self.loaded_length = self.loaded_length + #new_content
-            self.last_loaded_chunk = i
-        end
+    -- check how long loaded content is, to check if loading is necessary
+    local loaded_length = self.loaded_length
+    for i = self.first_loaded_chunk, from_chunk - 1 do
+        loaded_length = loaded_length - #self.contents[i]
     end
-    --print('  !!! loaded', self.first_loaded_chunk .. ' ~ ' .. self.last_loaded_chunk)
-    return self.contents[chunk]
+
+    -- loads contents until `starting_index` is valid, returns `false` if not enough content is available
+    while loaded_length < starting_index do
+        local new_content = self:load_next()
+        if not new_content then
+            return false
+        end
+        loaded_length = loaded_length + #new_content
+    end
+
+    return true
 end
 
 function stream_state:load_next()
-    local new_content = self.read(self.chunksize)
+    local new_content = self.read(unpack(self.read_args))
+    --print('   !!! loading', self.last_loaded_chunk + 1, string.format("%q", new_content))
     if not new_content or #new_content <= 0 then
         return nil
     end
@@ -93,7 +98,11 @@ end
 --- String Stream module
 local stringstream = {}
 
-stringstream.chunksize = DEFAULT_CHUNKSIZE
+--- Default chunk size of streams created with file objects.
+--
+-- Change this to configure defaults module-wise.
+-- Default value is 1024.
+stringstream.chunksize = 1024
 
 local function iscallable(v)
     if type(v) == 'function' then
@@ -112,39 +121,77 @@ local function wrap_stream(stream, chunk, starting_index)
     }, stringstream)
 end
 
-function stringstream.new(read_or_file, chunksize)
-    local read
-    if iscallable(read_or_file) then
-        read = read_or_file
+--- Create a new stringstream from callable object or file-like object.
+--
+-- Both functions and tables or userdata with a `__call` metamethod are
+-- accepted as callables. Just like `load`, each call must return a string that
+-- concatenates with previous results and a return of an empty string, nil, or
+-- no value signals the end of the stream. 
+--
+-- File-like objects are tables or userdata with a `read` method.
+--
+-- @tparam ?function|table|userdata callable_or_file  Callable or file-like object which chunks will be read from
+-- @param ...  Arguments to be forwarded to the reading function. If `callable_or_file` is a file and no extra arguments are passed, `stringstream.chunksize` will be used
+--
+-- @return[1] stringstream object
+-- @return[2] nil
+-- @return[2] error message
+function stringstream.new(callable_or_file, ...)
+    local read, should_forward_default_chunksize
+    if iscallable(callable_or_file) then
+        read = callable_or_file
     else
-        local read_type = type(read_or_file)
+        local read_type = type(callable_or_file)
         if read_type == 'table' or read_type == 'userdata' then
-            if not read_or_file.read then
+            if not callable_or_file.read then
                 return nil, [[Argument is not a file-like object, no "read" method found]]
             end
-            read = function(...) return read_or_file:read(...) end
+            should_forward_default_chunksize = select('#', ...) == 0 and io.type(callable_or_file) == 'file'
+            read = function(...) return callable_or_file:read(...) end
         else
             return nil, string.format([[Expected callable or file-like object, found %q]], read_type)
         end
     end
-    local stream = stream_state.new(read, chunksize or stringstream.chunksize)
+    local stream
+    if should_forward_default_chunksize then
+        stream = stream_state.new(read, stringstream.chunksize)
+    else
+        stream = stream_state.new(read, ...)
+    end
     return wrap_stream(stream, 1, 1)
 end
 
-function stringstream.open(filename, chunksize)
-    local file, err, code = io.open(filename)
+--- Creates a new stream from file.
+--
+-- Opens the file with `io.open` in read mode and forward parameters to
+-- `stringstream.new`.
+--
+-- @see stringstream.new
+--
+-- @tparam string filename  Name of the file to open
+-- @tparam ?string|number ...  Arguments to be forwarded to `file:read`
+--
+-- @return[1] stringstream object
+-- @return[2] nil
+-- @return[2] error message
+-- @return[2] error code on `io.open` failure
+function stringstream.open(filename, ...)
+    local file, err, code = io.open(filename, 'r')
     if not file then
         return nil, err, code
     end
-    return stringstream.new(file, chunksize)
+    return stringstream.new(file, ...)
 end
 
 function stringstream:sub(i, j)
     assert(i > 0, "Calling stringstream.sub with non-positive index is not supported!")
     if not j then
         local starting_index = self.starting_index + i - 1
-        self.stream:load_if_needed(self.chunk, starting_index)
-        return wrap_stream(self.stream, self.stream:recalculate_chunk_index(self.chunk, starting_index))
+        if self.stream:load_if_needed(self.chunk, starting_index) then
+            return wrap_stream(self.stream, self.stream:calculate_chunk_index(self.chunk, starting_index))
+        else
+            return ''
+        end
     else
         assert(j > 0, "Calling stringstream.sub with negative index is not supported!")
         if j < i then

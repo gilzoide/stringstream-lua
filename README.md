@@ -22,7 +22,7 @@ local stringstream = require 'stringstream'
 -- that contain a `read` method, like open files.
 local stream = assert(stringstream.new(io.stdin))
 
--- Alternatively, `stringstream.open(filename)` may be used to open a file
+-- Alternatively, `stringstream.open(filename, ...)` may be used to open a file
 -- by name in read mode and create a stringstream from it.
 --
 -- local stream = assert(stringstream.open("README.md"))
@@ -39,11 +39,11 @@ end
 
 
 ## Supported methods and metamethods
+
 - [__tostring](https://www.lua.org/manual/5.4/manual.html#2.4):
   Returns the current loaded content string.
 - [__len](https://www.lua.org/manual/5.4/manual.html#2.4), [len](https://www.lua.org/manual/5.4/manual.html#pdf-string.len):
   Returns the length of the current loaded content.
-  This is probably only useful to check for end of contents with `#stream == 0`, as it almost never reflects the entire contents length.
 - [sub](https://www.lua.org/manual/5.4/manual.html#pdf-string.sub):
   If both `i` and `j` are passed, returns the string that starts at `i` and continues until `j`.
   If only `i` is passed, returns a new view into stream with starting index `i`. 
@@ -74,6 +74,7 @@ Tests are run using [busted](https://olivinelabs.com/busted/):
 
 
 ## TODO
+
 - Add documentation
 - Automated tests
 - Remove commented `print` debug lines
