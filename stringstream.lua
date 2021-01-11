@@ -172,9 +172,9 @@ end
 -- @tparam ?string|number ...  Arguments to be forwarded to `file:read`
 --
 -- @return[1] stringstream object
--- @return[2] nil
--- @return[2] error message
--- @return[2] error code on `io.open` failure
+-- @treturn[2] nil
+-- @treturn[2] string  Error message
+-- @treturn[2] number  Error code on `io.open` failure
 function stringstream.open(filename, ...)
     local file, err, code = io.open(filename, 'r')
     if not file then
@@ -183,8 +183,23 @@ function stringstream.open(filename, ...)
     return stringstream.new(file, ...)
 end
 
+--- Returns a substring or a new view into stream.
+--
+-- If both `i` and `j` are passed, returns the substring that starts at `i`
+-- and continues until `j` or until the end of stream.
+-- Otherwise, returns a new stringstream object with starting index `i`.
+--
+-- @raise If either `i` or `j` are non-positive, as reading from the end of
+-- stream is not supported.
+--
+-- @tparam number i  Starting index
+-- @tparam[opt] number j  Starting index
+--
+-- @treturn[1] stringstream If `j` is not passed and `i` is not past the end of the stream
+-- @treturn[2] string Empty if `j` is not passed in and `i` is past the end of the stream
+-- @treturn[3] string Substring if `j` is passed in
 function stringstream:sub(i, j)
-    assert(i > 0, "Calling stringstream.sub with non-positive index is not supported!")
+    assert(i and i > 0, "Calling stringstream.sub with non-positive index is not supported!")
     if not j then
         local starting_index = self.starting_index + i - 1
         if self.stream:load_if_needed(self.chunk, starting_index) then
@@ -204,9 +219,26 @@ function stringstream:sub(i, j)
     end
 end
 
+--- Try finding `pattern` on loaded contents.
+--
+-- Upon failure or repetition items that match the whole loaded content,
+-- loads a new chunk and retry.
+--
+-- @raise If `init` is a negative number.
+--
+-- @see string:find
+--
+-- @tparam string pattern  Pattern string to search
+-- @tparam[opt] number init  Where to start the search from
+-- @param[opt] plain  If truthy, turns off the pattern matching facilities
+--
+-- @treturn[1] number  Starting index of found pattern
+-- @treturn[1] number  Ending index of found pattern
+-- @treturn[1] ...  Aditional captures of found pattern
+-- @treturn[2] fail  If pattern is not found
 function stringstream:find(pattern, init, plain)
     init = init or 1
-    assert(init > 0, "Calling stringstream.find with non-positive index is not supported!")
+    assert(init >= 0, "Calling stringstream.find with negative index is not supported!")
     local stream, chunk, starting_index = self.stream, self.chunk, self.starting_index
     stream:load_if_needed(chunk, starting_index + init - 1)
     while true do
@@ -225,8 +257,23 @@ function stringstream:find(pattern, init, plain)
     end
 end
 
+--- Try matching `pattern` on loaded contents.
+--
+-- Uses `stringstream:find` for searching, so the same caveats apply.
+--
+-- @raise If `init` is a negative number.
+--
+-- @see string:match
+-- @see stringstream:find
+--
+-- @tparam string pattern  Pattern string to search
+-- @tparam[opt] number init  Where to start the search from
+--
+-- @treturn[1] ...  Captures of the found pattern
+-- @treturn[2] string  The whole match, if pattern specifies no captures
+-- @treturn[3] fail  If pattern is not found
 function stringstream:match(pattern, init)
-    assert((not init) or init > 0, "Calling stringstream.match with non-positive index is not supported!")
+    assert((not init) or init >= 0, "Calling stringstream.match with negative index is not supported!")
     local find_results = { self:find(pattern, init, false) }
     if find_results[1] and not find_results[3] then
         return self:sub(find_results[1], find_results[2])
@@ -235,8 +282,22 @@ function stringstream:match(pattern, init)
     end
 end
 
+--- Returns an iterator function that, each time it is called, returns the next
+-- match from loaded contents.
+--
+-- Uses `stringstream:find` for searching, so the same caveats apply.
+--
+-- @raise If `init` is a negative number.
+--
+-- @see string:gmatch
+-- @see stringstream:match
+--
+-- @tparam string pattern  Pattern string to search
+-- @tparam[opt] number init  Where to start the search from
+--
+-- @treturn function  Iterator function over matches
 function stringstream:gmatch(pattern, init)
-    assert((not init) or init > 0, "Calling stringstream.gmatch with non-positive index is not supported!")
+    assert((not init) or init >= 0, "Calling stringstream.gmatch with negative index is not supported!")
     local function iterate()
         local init = init
         while true do
@@ -257,13 +318,22 @@ function stringstream:gmatch(pattern, init)
     return coroutine.wrap(iterate)
 end
 
+--- Returns the current loaded content string.
+--
+-- Be careful that it almost never reflects the entire content string.
 function stringstream:__tostring()
     return self.stream:string_from(self.chunk, self.starting_index)
 end
 
+--- Returns the current loaded content length.
+--
+-- Be careful that it almost never reflects the entire content length.
 function stringstream:__len()
     return self.stream.loaded_length - (self.starting_index - 1)
 end
+
+--- Alias for `stringstream:__len`
+-- @function stringstream.len
 
 stringstream.__index = {
     sub = stringstream.sub,
@@ -274,6 +344,7 @@ stringstream.__index = {
     __len = stringstream.__len,
 }
 
+--- Module version.
 stringstream._VERSION = '0.1.1'
 
 return stringstream
