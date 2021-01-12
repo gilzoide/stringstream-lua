@@ -298,6 +298,10 @@ end
 -- @treturn function  Iterator function over matches
 function stringstream:gmatch(pattern, init)
     assert((not init) or init >= 0, "Calling stringstream.gmatch with negative index is not supported!")
+    -- Don't interpreted '^' as an anchor, just like `string.gmatch` does
+    if pattern:sub(1, 1) == '^' then
+        pattern = '%' .. pattern
+    end
     local function iterate()
         local init = init
         while true do
