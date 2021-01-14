@@ -394,6 +394,6 @@ stringstream.__index = {
 }
 
 --- Module version.
-stringstream._VERSION = '0.1.1'
+stringstream._VERSION = '0.2.0'
 
 return stringstream

@@ -42,8 +42,10 @@ end
 
 - [__tostring](https://www.lua.org/manual/5.4/manual.html#2.4):
   Returns the current loaded content string.
+  Be careful that it almost never reflects the entire content string.
 - [__len](https://www.lua.org/manual/5.4/manual.html#2.4), [len](https://www.lua.org/manual/5.4/manual.html#pdf-string.len):
   Returns the length of the current loaded content.
+  Be careful that it almost never reflects the entire contents length.
 - [sub](https://www.lua.org/manual/5.4/manual.html#pdf-string.sub):
   If both `i` and `j` are passed, returns the string that starts at `i` and continues until `j`.
   If only `i` is passed, returns a new view into stream with starting index `i`. 
