@@ -9,7 +9,7 @@ description = {
     detailed = [[
 An object that loads chunks of strings on demand compatible with a subset of the Lua string API suitable for parsing.
 
-Useful on it's own, or for passing streams (e.g.: files) to parser functionality that expects strings and use method notation (`text:match(...)`).
+Useful for passing streams (e.g.: files) to parser functionality that expects strings and use method notation (`text:match(...)`).
 
 Supported methods and metamethods:
 ==================================

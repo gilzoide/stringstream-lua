@@ -58,11 +58,11 @@
 <h2><a href="#Functions">Functions</a></h2>
 <table class="function_list">
 	<tr>
-	<td class="name" nowrap><a href="#new">new (callable_or_file, ...)</a></td>
+	<td class="name" nowrap><a href="#new">new (callable_or_file[, options[, ...]])</a></td>
 	<td class="summary">Create a new stringstream from callable object or file-like object.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#open">open (filename, ...)</a></td>
+	<td class="name" nowrap><a href="#open">open (filename[, ...])</a></td>
 	<td class="summary">Creates a new stream from file.</td>
 	</tr>
 	<tr>
@@ -98,8 +98,12 @@
 <h2><a href="#Fields">Fields</a></h2>
 <table class="function_list">
 	<tr>
-	<td class="name" nowrap><a href="#chunksize">chunksize</a></td>
-	<td class="summary">Default chunk size of streams created with file objects.</td>
+	<td class="name" nowrap><a href="#readsize">readsize</a></td>
+	<td class="summary">Default read size of streams created with file objects.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#max_find_lookahead">max_find_lookahead</a></td>
+	<td class="summary">Default maximum number of bytes that <a href="index.html#find">stringstream:find</a> may load.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#_VERSION">_VERSION</a></td>
@@ -116,17 +120,18 @@
     <dl class="function">
     <dt>
     <a name = "new"></a>
-    <strong>new (callable_or_file, ...)</strong>
+    <strong>new (callable_or_file[, options[, ...]])</strong>
     </dt>
     <dd>
     Create a new stringstream from callable object or file-like object. </p>
 
 <p> Both functions and tables or userdata with a <code>__call</code> metamethod are
  accepted as callables. Just like <a href="https://www.lua.org/manual/5.1/manual.html#pdf-load">load</a>, each call must return a string that
- concatenates with previous results and a return of an empty string, nil, or
- no value signals the end of the stream. </p>
+ concatenates with previous results and a return of an empty string or a falsey
+ value signals the end of the stream. </p>
 
 <p> File-like objects are tables or userdata with a <code>read</code> method.
+ Chunks will be read calling the <code>read</code> method as in <code>object:read(...)</code>.
 
 
     <h3>Parameters:</h3>
@@ -135,8 +140,13 @@
             <span class="types"><span class="type">function</span>, <a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.5">table</a> or <span class="type">userdata</span></span>
           Callable or file-like object which chunks will be read from
         </li>
+        <li><span class="parameter">options</span>
+          Table of stream options. Currently the only supported option is <a href="index.html#max_find_lookahead">max_find_lookahead</a>.
+         (<em>optional</em>)
+        </li>
         <li><span class="parameter">...</span>
-          Arguments to be forwarded to the reading function. If <code>callable_or_file</code> is a file and no extra arguments are passed, <a href="index.html#chunksize">stringstream.chunksize</a> will be used
+          Arguments to be forwarded to the reading function. If <code>callable_or_file</code> is a file and no extra arguments are passed, <a href="index.html#readsize">stringstream.readsize</a> will be used
+         (<em>optional</em>)
         </li>
     </ul>
 
@@ -155,11 +165,29 @@
 
 
 
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example"><span class="comment">-- stream that reads chunks of 1024 bytes from opened file
+</span><span class="comment">-- and retries <a href="index.html#find">find</a> as many times as necessary
+</span>stream = stringstream.new(<span class="global">io</span>.open(<span class="string">'file'</span>))
+
+<span class="comment">-- stream that reads lines from stdin and fails a search after
+</span><span class="comment">-- having more than 4096 bytes loaded
+</span>stream = stringstream.new(<span class="global">io</span>.stdin, { max_find_lookahead = <span class="number">4096</span> }, <span class="string">'*l'</span>)
+
+<span class="comment">-- stream that generates digits from 1 to 10
+</span><span class="keyword">local</span> gen_numbers = <span class="global">coroutine</span>.wrap(<span class="keyword">function</span>()
+    <span class="keyword">for</span> i = <span class="number">1</span>, <span class="number">10</span> <span class="keyword">do</span>
+        <span class="global">coroutine</span>.yield(<span class="global">tostring</span>(i))
+    <span class="keyword">end</span>
+<span class="keyword">end</span>)
+stream = stringstream.new(gen_numbers)</pre>
+    </ul>
 
 </dd>
     <dt>
     <a name = "open"></a>
-    <strong>open (filename, ...)</strong>
+    <strong>open (filename[, ...])</strong>
     </dt>
     <dd>
     Creates a new stream from file. </p>
@@ -175,8 +203,8 @@
           Name of the file to open
         </li>
         <li><span class="parameter">...</span>
-            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a> or <span class="type">number</span></span>
-          Arguments to be forwarded to <a href="https://www.lua.org/manual/5.1/manual.html#pdf-file:read">file:read</a>
+          Arguments forwarded to <a href="index.html#new">stringstream:new</a>
+         (<em>optional</em>)
         </li>
     </ul>
 
@@ -206,6 +234,16 @@
          <a href="index.html#new">stringstream.new</a>
     </ul>
 
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example"><span class="comment">-- stream that reads chunks of 1024 bytes from 'file.txt'
+</span><span class="comment">-- and loads the entire contents on a call to <a href="index.html#find">find</a>, if necessary
+</span>stream = stringstream.open(<span class="string">'file.txt'</span>)
+
+<span class="comment">-- stream that reads lines from 'file.txt'
+</span><span class="comment">-- and loads the entire contents on a call to <a href="index.html#find">find</a>, if necessary
+</span>stream = stringstream.open(<span class="string">'file.txt'</span>, <span class="keyword">nil</span>, <span class="string">'*l'</span>)</pre>
+    </ul>
 
 </dd>
     <dt>
@@ -266,8 +304,13 @@
     <dd>
     Try finding <code>pattern</code> on loaded contents. </p>
 
-<p> Upon failure or repetition items that match the whole loaded content,
- loads a new chunk and retry.
+<p> Upon failure or if match spans the entire loaded content, loads new chunks,
+ bailing out after having more than <a href="index.html#max_find_lookahead">max_find_lookahead</a> bytes loaded
+ counting from <code>init</code>, returning <code>nil</code> afterwards.</p>
+
+<p> Notice that the default value for <a href="index.html#max_find_lookahead">max_find_lookahead</a> makes the whole stream be
+ loaded in case of failures or big matches. This is to have consistent output
+ between stringstream and the string API by default.
 
 
     <h3>Parameters:</h3>
@@ -462,11 +505,11 @@
 
     <dl class="function">
     <dt>
-    <a name = "chunksize"></a>
-    <strong>chunksize</strong>
+    <a name = "readsize"></a>
+    <strong>readsize</strong>
     </dt>
     <dd>
-    Default chunk size of streams created with file objects. </p>
+    Default read size of streams created with file objects. </p>
 
 <p> Change this to configure defaults module-wise.
  Default value is 1024.
@@ -475,6 +518,27 @@
 
 
 
+
+
+</dd>
+    <dt>
+    <a name = "max_find_lookahead"></a>
+    <strong>max_find_lookahead</strong>
+    </dt>
+    <dd>
+    Default maximum number of bytes that <a href="index.html#find">stringstream:find</a> may load. </p>
+
+<p> Change this to configure defaults module-wise.
+ Default value is <a href="https://www.lua.org/manual/5.1/manual.html#pdf-math.huge">math.huge</a>, that is, load until stream is completely consumed, if necessary.
+
+
+
+
+
+    <h3>See also:</h3>
+    <ul>
+         <a href="index.html#find">stringstream:find</a>
+    </ul>
 
 
 </dd>
@@ -499,7 +563,7 @@
 </div> <!-- id="main" -->
 <div id="about">
 <i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
-<i style="float:right;">Last updated 2021-01-10 22:41:15 </i>
+<i style="float:right;">Last updated 2021-01-14 20:29:25 </i>
 </div> <!-- id="about" -->
 </div> <!-- id="container" -->
 </body>

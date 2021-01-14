@@ -3,7 +3,7 @@ An object that loads chunks of strings on demand compatible with a subset
 of the [Lua string API](https://www.lua.org/manual/5.4/manual.html#6.4)
 suitable for parsing. Compatible with Lua 5.1+
 
-Useful on it's own, or for passing streams (e.g.: files) to parser functionality
+Useful for passing streams (e.g.: files) to parser functionality
 that expects strings and use method notation (`text:match(...)`).
 
 It is available as a [LuaRocks package](https://luarocks.org/modules/gilzoide/stringstream):
@@ -52,18 +52,18 @@ end
 - [find](https://www.lua.org/manual/5.4/manual.html#pdf-string.find):
   Try finding pattern on loaded contents. Upon failure or repetition items that
   match the whole string, loads new chunks and try again.
-  Number of retries will be parameterizable upon creation.
+  Maximum number of extra bytes loaded is parameterizable upon creation.
   Negative indices are not supported.
 - [match](https://www.lua.org/manual/5.4/manual.html#pdf-string.match):
   Try matching pattern on loaded contents. Upon failure or repetition items that
   match the whole string, loads new chunks and try again.
-  Number of retries will be parameterizable upon creation.
+  Maximum number of extra bytes loaded is parameterizable upon creation.
   Negative indices are not supported.
 - [gmatch](https://www.lua.org/manual/5.4/manual.html#pdf-string.gmatch):
   Returns an iterator function that, each time it is called, returns the next
   match from loaded contents. On iteration end or repetition items that match
   the whole string, loads new chunks and retry.
-  Number of retries will be parameterizable upon creation.
+  Maximum number of extra bytes loaded is parameterizable upon creation.
   Negative indices are not supported.
 
 
@@ -78,6 +78,6 @@ Tests are run using [busted](https://olivinelabs.com/busted/):
 - Add documentation
 - Automated tests
 - Remove commented `print` debug lines
-- Add retry and chunk caching configurations
+- Add chunk caching configurations
 - Check if should implement gsub
 - Check if should implement negative indices for streams that support seek operations (e.g.: files)

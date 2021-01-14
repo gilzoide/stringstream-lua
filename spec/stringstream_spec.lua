@@ -61,6 +61,14 @@ describe("stringstream.find", function()
         local ss = assert(stringstream.new(test_queue()))
         assert.is_nil(ss:find('a+$'))
     end)
+
+    it("respects max_find_lookahead option", function()
+        local ss = assert(stringstream.new(test_queue()))
+        assert.not_nil(ss:find("%s"))
+
+        ss = assert(stringstream.new(test_queue(), { max_find_lookahead = 6 }))
+        assert.is_nil(ss:find("%s"))
+    end)
 end)
 
 describe("stringstream.gmatch", function()
@@ -69,11 +77,21 @@ describe("stringstream.gmatch", function()
         local iterator = ss:gmatch("^a")
         assert.is_nil(iterator())
     end)
+
+    it("respects max_find_lookahead option", function()
+        local ss = assert(stringstream.new(test_queue()))
+        local iterator = ss:gmatch("%s")
+        assert.not_nil(iterator())
+
+        ss = assert(stringstream.new(test_queue(), { max_find_lookahead = 6 }))
+        iterator = ss:gmatch("%s")
+        assert.is_nil(iterator())
+    end)
 end)
 
 describe("Calling with file", function()
     it("reads the entire file until completion", function()
-        local ss = assert(stringstream.open("stringstream.lua", 42))
+        local ss = assert(stringstream.open("stringstream.lua", nil, 42))
         local contents = ''
         repeat
             contents = contents .. ss:sub(1, 10)

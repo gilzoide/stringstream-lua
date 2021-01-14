@@ -56,13 +56,13 @@ function stream_state:load_if_needed(from_chunk, starting_index)
         loaded_length = loaded_length + #new_content
     end
 
-    return true
+    return loaded_length - (starting_index - 1)
 end
 
 function stream_state:load_next()
     local new_content = self.read(unpack(self.read_args))
     --print('   !!! loading', self.last_loaded_chunk + 1, string.format("%q", new_content))
-    if not new_content or #new_content <= 0 then
+    if not new_content or new_content == '' then
         return nil
     end
     self.last_loaded_chunk = self.last_loaded_chunk + 1
@@ -98,11 +98,19 @@ end
 --- String Stream module
 local stringstream = {}
 
---- Default chunk size of streams created with file objects.
+--- Default read size of streams created with file objects.
 --
 -- Change this to configure defaults module-wise.
 -- Default value is 1024.
-stringstream.chunksize = 1024
+stringstream.readsize = 1024
+
+--- Default maximum number of bytes that `stringstream:find` may load.
+--
+-- Change this to configure defaults module-wise.
+-- Default value is `math.huge`, that is, load until stream is completely consumed, if necessary.
+--
+-- @see stringstream:find
+stringstream.max_find_lookahead = math.huge
 
 local function iscallable(v)
     if type(v) == 'function' then
@@ -113,9 +121,10 @@ local function iscallable(v)
     end
 end
 
-local function wrap_stream(stream, chunk, starting_index)
+local function wrap_stream(stream, max_find_lookahead, chunk, starting_index)
     return setmetatable({
         stream = stream,
+        max_find_lookahead = max_find_lookahead or stringstream.max_find_lookahead,
         chunk = chunk or stream.first_loaded_chunk,
         starting_index = starting_index or 1,
     }, stringstream)
@@ -125,18 +134,37 @@ end
 --
 -- Both functions and tables or userdata with a `__call` metamethod are
 -- accepted as callables. Just like `load`, each call must return a string that
--- concatenates with previous results and a return of an empty string, nil, or
--- no value signals the end of the stream. 
+-- concatenates with previous results and a return of an empty string or a falsey
+-- value signals the end of the stream. 
 --
 -- File-like objects are tables or userdata with a `read` method.
+-- Chunks will be read calling the `read` method as in `object:read(...)`.
+--
+-- @usage
+--   -- stream that reads chunks of 1024 bytes from opened file
+--   -- and retries `find` as many times as necessary
+--   stream = stringstream.new(io.open('file'))
+--
+--   -- stream that reads lines from stdin and fails a search after
+--   -- having more than 4096 bytes loaded
+--   stream = stringstream.new(io.stdin, { max_find_lookahead = 4096 }, '*l')
+--   
+--   -- stream that generates digits from 1 to 10
+--   local gen_numbers = coroutine.wrap(function()
+--       for i = 1, 10 do
+--           coroutine.yield(tostring(i))
+--       end
+--   end)
+--   stream = stringstream.new(gen_numbers)
 --
 -- @tparam ?function|table|userdata callable_or_file  Callable or file-like object which chunks will be read from
--- @param ...  Arguments to be forwarded to the reading function. If `callable_or_file` is a file and no extra arguments are passed, `stringstream.chunksize` will be used
+-- @param[opt] options  Table of stream options. Currently the only supported option is `max_find_lookahead`.
+-- @param[opt] ...  Arguments to be forwarded to the reading function. If `callable_or_file` is a file and no extra arguments are passed, `stringstream.readsize` will be used
 --
 -- @return[1] stringstream object
 -- @return[2] nil
 -- @return[2] error message
-function stringstream.new(callable_or_file, ...)
+function stringstream.new(callable_or_file, options, ...)
     local read, should_forward_default_chunksize
     if iscallable(callable_or_file) then
         read = callable_or_file
@@ -154,11 +182,11 @@ function stringstream.new(callable_or_file, ...)
     end
     local stream
     if should_forward_default_chunksize then
-        stream = stream_state.new(read, stringstream.chunksize)
+        stream = stream_state.new(read, stringstream.readsize)
     else
         stream = stream_state.new(read, ...)
     end
-    return wrap_stream(stream, 1, 1)
+    return wrap_stream(stream, options and options.max_find_lookahead, 1, 1)
 end
 
 --- Creates a new stream from file.
@@ -168,8 +196,17 @@ end
 --
 -- @see stringstream.new
 --
+-- @usage
+--   -- stream that reads chunks of 1024 bytes from 'file.txt'
+--   -- and loads the entire contents on a call to `find`, if necessary
+--   stream = stringstream.open('file.txt')
+--
+--   -- stream that reads lines from 'file.txt'
+--   -- and loads the entire contents on a call to `find`, if necessary
+--   stream = stringstream.open('file.txt', nil, '*l')
+--
 -- @tparam string filename  Name of the file to open
--- @tparam ?string|number ...  Arguments to be forwarded to `file:read`
+-- @param[opt] ...  Arguments forwarded to `stringstream:new`
 --
 -- @return[1] stringstream object
 -- @treturn[2] nil
@@ -203,7 +240,7 @@ function stringstream:sub(i, j)
     if not j then
         local starting_index = self.starting_index + i - 1
         if self.stream:load_if_needed(self.chunk, starting_index) then
-            return wrap_stream(self.stream, self.stream:calculate_chunk_index(self.chunk, starting_index))
+            return wrap_stream(self.stream, self.max_find_lookahead, self.stream:calculate_chunk_index(self.chunk, starting_index))
         else
             return ''
         end
@@ -221,8 +258,13 @@ end
 
 --- Try finding `pattern` on loaded contents.
 --
--- Upon failure or repetition items that match the whole loaded content,
--- loads a new chunk and retry.
+-- Upon failure or if match spans the entire loaded content, loads new chunks,
+-- bailing out after having more than `max_find_lookahead` bytes loaded
+-- counting from `init`, returning `nil` afterwards.
+--
+-- Notice that the default value for `max_find_lookahead` makes the whole stream be
+-- loaded in case of failures or big matches. This is to have consistent output
+-- between stringstream and the string API by default.
 --
 -- @raise If `init` is a negative number.
 --
@@ -240,8 +282,8 @@ function stringstream:find(pattern, init, plain)
     init = init or 1
     assert(init >= 0, "Calling stringstream.find with negative index is not supported!")
     local stream, chunk, starting_index = self.stream, self.chunk, self.starting_index
-    stream:load_if_needed(chunk, starting_index + init - 1)
-    while true do
+    local loaded_length = stream:load_if_needed(chunk, starting_index + init - 1)
+    while loaded_length < self.max_find_lookahead do
         local text = stream:string_from(chunk, starting_index)
         local results = { text:find(pattern, init, plain) }
         if results[1] and results[2] < #text then
@@ -251,10 +293,13 @@ function stringstream:find(pattern, init, plain)
             -- match was found, but may be longer, to reduce search space
             -- (check if there are cases where this would return wrong results)
         end
-        if not stream:load_next() then
+        local extra_contents = stream:load_next()
+        if not extra_contents then
             return unpack(results)
         end
+        loaded_length = loaded_length + #extra_contents
     end
+    return nil
 end
 
 --- Try matching `pattern` on loaded contents.
