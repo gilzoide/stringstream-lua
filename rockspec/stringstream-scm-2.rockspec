@@ -29,17 +29,17 @@ Supported methods and metamethods:
 
 - find:
   Try finding pattern on loaded contents. Upon failure or repetition items that match the whole string, loads new chunks and try again.
-  Number of retries will be parameterizable upon creation.
+  Maximum number of extra bytes loaded is parameterizable upon creation.
   Negative indices are not supported.
 
 - match:
   Try matching pattern on loaded contents. Upon failure or repetition items that match the whole string, loads new chunks and try again.
-  Number of retries will be parameterizable upon creation.
+  Maximum number of extra bytes loaded is parameterizable upon creation.
   Negative indices are not supported.
 
 - gmatch:
   Returns an iterator function that, each time it is called, returns the next match from loaded contents. On iteration end or repetition items that match the whole string, loads new chunks and retry.
-  Number of retries will be parameterizable upon creation.
+  Maximum number of extra bytes loaded is parameterizable upon creation.
   Negative indices are not supported.
 ]],
     license = "Unlicense",
