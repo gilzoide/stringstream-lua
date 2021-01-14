@@ -6,7 +6,8 @@ suitable for parsing. Compatible with Lua 5.1+
 Useful for passing streams (e.g.: files) to parser functionality
 that expects strings and use method notation (`text:match(...)`).
 
-It is available as a [LuaRocks package](https://luarocks.org/modules/gilzoide/stringstream):
+It is available as a [LuaRocks package](https://luarocks.org/modules/gilzoide/stringstream)
+and has [online documentation](https://gilzoide.github.io/stringstream-lua/):
 
     $ luarocks install stringstream
 
