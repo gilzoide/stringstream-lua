@@ -78,9 +78,8 @@ Tests are run using [busted](https://olivinelabs.com/busted/):
 
 ## TODO
 
-- Add documentation
 - Automated tests
 - Remove commented `print` debug lines
 - Add chunk caching configurations and document how memory is managed
-- Check if should implement gsub
+- Check if should implement gsub and `__eq` with strings
 - Check if should implement negative indices for streams that support seek operations (e.g.: files)

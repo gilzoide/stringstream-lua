@@ -1,5 +1,32 @@
 --- An object that loads chunks of strings on demand compatible with a subset
 -- of the string API suitable for parsing.
+--
+-- Project URL: https://github.com/gilzoide/stringstream-lua
+--
+-- Example:
+--     local stringstream = require 'stringstream'
+--     
+--     -- Streams may be created with callable objects (functions or tables/userdata
+--     -- with __call metamethod) like the ones `load` expects, or file-like objects
+--     -- that contain a `read` method, like open files.
+--     local stream = assert(stringstream.new(io.stdin))
+--     
+--     -- Alternatively, `stringstream.open(filename, ...)` may be used to open a file
+--     -- by name in read mode and create a stringstream from it.
+--     --
+--     -- local stream = assert(stringstream.open("README.md"))
+--     
+--     -- Now just call the supported string methods =D
+--     while true do
+--         local token, advance = stream:match("(%S+)()")
+--         if not token then break end
+--         -- ... do something with token
+--         print('TOKEN', token)
+--         stream = stream:sub(advance)
+--     end
+--
+-- @module stringstream
+-- @license [Public Domain](https://unlicense.org/)
 
 -- Lua 5.1+ compatibility
 local unpack = table.unpack or unpack
@@ -172,12 +199,12 @@ function stringstream.new(callable_or_file, options, ...)
         local read_type = type(callable_or_file)
         if read_type == 'table' or read_type == 'userdata' then
             if not callable_or_file.read then
-                return nil, [[Argument is not a file-like object, no "read" method found]]
+                return nil, 'Argument is not a file-like object, no "read" method found'
             end
             should_forward_default_chunksize = select('#', ...) == 0 and io.type(callable_or_file) == 'file'
             read = function(...) return callable_or_file:read(...) end
         else
-            return nil, string.format([[Expected callable or file-like object, found %q]], read_type)
+            return nil, string.format("Expected callable or file-like object, found %q", read_type)
         end
     end
     local stream
