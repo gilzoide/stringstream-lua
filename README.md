@@ -76,6 +76,14 @@ Tests are run using [busted](https://olivinelabs.com/busted/):
     $ busted
 
 
+## Documentation
+The API is documented using [LDoc](https://github.com/stevedonovan/LDoc) and
+is available at [github pages](https://gilzoide.github.io/stringstream-lua/).
+
+To generate:
+
+    $ ldoc .
+
 ## TODO
 
 - Automated tests
